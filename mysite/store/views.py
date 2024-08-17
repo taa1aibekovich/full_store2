@@ -98,3 +98,26 @@ class RatingViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+
+class CartViewSet(viewsets.ModelViewSet):
+    serializer_class = CartSerializer
+
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
+
+
+class CarItemViewSet(viewsets.ModelViewSet):
+    serializer_class = CartItemSerializer
+
+    def get_queryset(self):
+        return CarItem.objects.filter(cart__user=self.request.user)
+
+    def perform_create(self, serializer):
+        cart, created = Cart.objects.get_or_create(user=self.request.user)
+        serializer.save(cart=cart)
